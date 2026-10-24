@@ -1,0 +1,349 @@
+Registro de pruebas - TP 08 Reservas de salas (HTTP + MongoDB)
+Fecha: 23/10/2026, 01:11:09
+Servidor: node --env-file=.env src/index.js  (http://localhost:3000)
+Base: reservas_salas_u8 / colección reservas (MongoDB Atlas Free M0)
+Datos ficticios. Sin URI ni credenciales.
+
+==============================================================================
+A. Primer arranque
+==============================================================================
+    consola> Aplicación disponible en http://localhost:3000
+
+==============================================================================
+B. Listado inicial, creación y consulta del recurso creado
+==============================================================================
+
+[1] GET http://localhost:3000/api/reservas   (listado inicial)
+    Estado: 200   Content-Type respuesta: application/json
+    Respuesta: []
+    Cantidad: 0
+
+[2] POST http://localhost:3000/api/reservas   (creación válida, enviada una sola vez)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":2}
+    Estado: 201   Content-Type respuesta: application/json
+    Location: /api/reservas/6adade5f32675795bd1e0660
+    Respuesta: {"id":"6adade5f32675795bd1e0660","estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":2,"estado":"pendiente"}
+
+[3] GET http://localhost:3000/api/reservas   (cantidad después de crear)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[4] GET http://localhost:3000/api/reservas/6adade5f32675795bd1e0660   (URL recibida en Location)
+    Estado: 200   Content-Type respuesta: application/json
+    Respuesta: {"id":"6adade5f32675795bd1e0660","estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":2,"estado":"pendiente"}
+    ¿Mismo recurso que la respuesta del POST? sí
+
+==============================================================================
+C. Identificadores
+==============================================================================
+
+[5] GET http://localhost:3000/api/reservas/1   (ID mal formado)
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"El identificador debe tener 24 caracteres hexadecimales.","campos":[]}
+
+[6] GET http://localhost:3000/api/reservas/000000000000000000000000   (ID con formato válido)
+    Estado: 404   Content-Type respuesta: application/json
+    Respuesta: {"error":"Reserva no encontrada."}
+
+==============================================================================
+D. Entradas inválidas (un dato por vez; cantidad antes y después)
+==============================================================================
+
+[7] POST http://localhost:3000/api/reservas   (Estudiante vacío)
+    Content-Type: application/json
+    Body: {"estudiante":"","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":2}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["estudiante"]}
+
+[8] GET http://localhost:3000/api/reservas   (cantidad después de: Estudiante vacío)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[9] POST http://localhost:3000/api/reservas   (Email sin @)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana.example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":2}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["email"]}
+
+[10] GET http://localhost:3000/api/reservas   (cantidad después de: Email sin @)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[11] POST http://localhost:3000/api/reservas   (Sala no permitida)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Este","fecha":"2026-10-21","turno":"Mañana","personas":2}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["sala"]}
+
+[12] GET http://localhost:3000/api/reservas   (cantidad después de: Sala no permitida)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[13] POST http://localhost:3000/api/reservas   (Turno no permitido)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Madrugada","personas":2}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["turno"]}
+
+[14] GET http://localhost:3000/api/reservas   (cantidad después de: Turno no permitido)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[15] POST http://localhost:3000/api/reservas   (Fecha vacía)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"","turno":"Mañana","personas":2}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["fecha"]}
+
+[16] GET http://localhost:3000/api/reservas   (cantidad después de: Fecha vacía)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[17] POST http://localhost:3000/api/reservas   (Personas 0)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":0}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["personas"]}
+
+[18] GET http://localhost:3000/api/reservas   (cantidad después de: Personas 0)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[19] POST http://localhost:3000/api/reservas   (Personas 7)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":7}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["personas"]}
+
+[20] GET http://localhost:3000/api/reservas   (cantidad después de: Personas 7)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[21] POST http://localhost:3000/api/reservas   (Personas 2.5)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":2.5}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["personas"]}
+
+[22] GET http://localhost:3000/api/reservas   (cantidad después de: Personas 2.5)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[23] POST http://localhost:3000/api/reservas   (Personas "abc")
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":"abc"}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["personas"]}
+
+[24] GET http://localhost:3000/api/reservas   (cantidad después de: Personas "abc")
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[25] POST http://localhost:3000/api/reservas   (Personas true)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":true}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["personas"]}
+
+[26] GET http://localhost:3000/api/reservas   (cantidad después de: Personas true)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[27] POST http://localhost:3000/api/reservas   (Personas arreglo)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":[2]}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["personas"]}
+
+[28] GET http://localhost:3000/api/reservas   (cantidad después de: Personas arreglo)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[29] POST http://localhost:3000/api/reservas   (Personas objeto)
+    Content-Type: application/json
+    Body: {"estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":{"cantidad":2}}
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["personas"]}
+
+[30] GET http://localhost:3000/api/reservas   (cantidad después de: Personas objeto)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[31] POST http://localhost:3000/api/reservas   (POST sin cuerpo)
+    Body: none
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Por favor, completá todos los campos con datos válidos.","campos":["estudiante","email","sala","fecha","turno","personas"]}
+
+[32] GET http://localhost:3000/api/reservas   (cantidad después de: POST sin cuerpo)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+[33] POST http://localhost:3000/api/reservas   (JSON mal formado)
+    Content-Type: application/json
+    Body: {"estudiante": "Ana Ejemplo", "email": "ana@example.com"
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"Revisá los datos enviados.","campos":[]}
+
+[34] GET http://localhost:3000/api/reservas   (cantidad después de: JSON mal formado)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 1
+
+==============================================================================
+E. Campos extra estado y _id (crea una reserva válida)
+==============================================================================
+
+[35] POST http://localhost:3000/api/reservas   (el cliente intenta asignar estado y _id)
+    Content-Type: application/json
+    Body: {"estudiante":"Carla Ejemplo","email":"carla@example.com","sala":"Sala Sur","fecha":"2026-10-21","turno":"Tarde","personas":3,"estado":"confirmada","_id":"000000000000000000000001"}
+    Estado: 201   Content-Type respuesta: application/json
+    Location: /api/reservas/6adade6032675795bd1e0661
+    Respuesta: {"id":"6adade6032675795bd1e0661","estudiante":"Carla Ejemplo","email":"carla@example.com","sala":"Sala Sur","fecha":"2026-10-21","turno":"Tarde","personas":3,"estado":"pendiente"}
+
+[36] GET http://localhost:3000/api/reservas   (cantidad después de la creación con campos extra)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 2
+
+==============================================================================
+F. Filtro por sala
+==============================================================================
+
+[37] GET http://localhost:3000/api/reservas?sala=Sala%20Norte   (sala=Sala Norte)
+    Estado: 200   Content-Type respuesta: application/json
+    Respuesta: [{"id":"6adade5f32675795bd1e0660","estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":2,"estado":"pendiente"}]
+
+[38] GET http://localhost:3000/api/reservas?sala=Sala%20Inexistente   (sala sin coincidencias)
+    Estado: 200   Content-Type respuesta: application/json
+    Respuesta: []
+
+[39] GET http://localhost:3000/api/reservas?sala=Sala%20Norte&sala=Sala%20Sur   (sala repetida)
+    Estado: 400   Content-Type respuesta: application/json
+    Respuesta: {"error":"El parámetro sala debe enviarse una sola vez y con texto.","campos":[]}
+
+==============================================================================
+G. Listar dos veces y ruta API inexistente
+==============================================================================
+
+[40] GET http://localhost:3000/api/reservas   (primera)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 2
+
+[41] GET http://localhost:3000/api/reservas   (segunda)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 2
+
+[42] GET http://localhost:3000/api/no-existe   (ruta API inexistente)
+    Estado: 404   Content-Type respuesta: application/json
+    Respuesta: {"error":"Ruta no encontrada."}
+
+==============================================================================
+H. Sitio HTML
+==============================================================================
+
+[43] GET http://localhost:3000/   (inicio)
+    Estado: 200   Content-Type respuesta: text/html
+    Respuesta: HTML con título "Gestión de Salas de Estudio"
+
+[44] GET http://localhost:3000/css/estilos.css   (CSS)
+    Estado: 200   Content-Type respuesta: text/css
+
+[45] GET http://localhost:3000/no-existe   (ruta inexistente)
+    Estado: 404   Content-Type respuesta: text/html
+    Respuesta: HTML con título "Página no encontrada"
+
+[46] GET http://localhost:3000/reservas   (listado HTML)
+    Estado: 200   Content-Type respuesta: text/html
+    Respuesta: HTML con título "Listado de reservas"
+    ¿El listado contiene la reserva 6adade5f32675795bd1e0660? sí
+
+[47] GET http://localhost:3000/reservas/6adade5f32675795bd1e0660   (detalle HTML)
+    Estado: 200   Content-Type respuesta: text/html
+    Respuesta: HTML con título "Reserva de Ana Ejemplo"
+    ¿Muestra el id y el estado pendiente? sí
+
+[48] POST http://localhost:3000/reservas   (formulario válido)
+    Content-Type: application/x-www-form-urlencoded
+    Body: estudiante=Bruno+Ejemplo&email=bruno%40example.com&sala=Sala+Multimedia&fecha=2026-10-22&turno=Noche&personas=4
+    Estado: 302   Content-Type respuesta: text/plain
+    Location: /reservas
+    Respuesta: HTML
+
+[49] GET http://localhost:3000/api/reservas   (cantidad después del formulario válido)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 3
+
+[50] GET http://localhost:3000/api/reservas?sala=Sala%20Multimedia   (¿aparece en la API?)
+    Estado: 200   Content-Type respuesta: application/json
+    Respuesta: [{"id":"6adade6132675795bd1e0662","estudiante":"Bruno Ejemplo","email":"bruno@example.com","sala":"Sala Multimedia","fecha":"2026-10-22","turno":"Noche","personas":4,"estado":"pendiente"}]
+
+[51] GET http://localhost:3000/reservas   (¿aparece en el HTML?)
+    Estado: 200   Content-Type respuesta: text/html
+    ¿El listado HTML muestra "Bruno Ejemplo"? sí
+
+[52] POST http://localhost:3000/reservas   (formulario inválido (9 personas))
+    Content-Type: application/x-www-form-urlencoded
+    Body: estudiante=Valor+Conservado&email=bruno%40example.com&sala=Sala+Multimedia&fecha=2026-10-22&turno=Noche&personas=9
+    Estado: 400   Content-Type respuesta: text/html
+    Respuesta: HTML con título "Registrar nueva reserva"
+    ¿Conserva el valor "Valor Conservado"? sí
+
+[53] GET http://localhost:3000/api/reservas   (cantidad después del formulario inválido)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 3
+
+[54] GET http://localhost:3000/estado   (estado)
+    Estado: 200   Content-Type respuesta: application/json
+    Respuesta: {"servicio":"activo","reservas":3,"solicitudId":"BIB-0054"}
+
+==============================================================================
+I. Cierre ordenado (Ctrl+C) y reinicio con la misma base
+==============================================================================
+    consola> Cerrando el servidor...
+    consola> Conexión con MongoDB cerrada.
+    Código de salida: 0
+    consola> Aplicación disponible en http://localhost:3000
+
+[55] GET http://localhost:3000/api/reservas/6adade5f32675795bd1e0660   (mismo ID después de reiniciar, sin repetir el POST)
+    Estado: 200   Content-Type respuesta: application/json
+    Respuesta: {"id":"6adade5f32675795bd1e0660","estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":2,"estado":"pendiente"}
+    ¿Mismo recurso que antes del reinicio? sí
+
+[56] GET http://localhost:3000/reservas/6adade5f32675795bd1e0660   (detalle en el sitio después de reiniciar)
+    Estado: 200   Content-Type respuesta: text/html
+    Respuesta: HTML con título "Reserva de Ana Ejemplo"
+
+[57] GET http://localhost:3000/api/reservas   (primera, tras reiniciar)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 3
+
+[58] GET http://localhost:3000/api/reservas   (segunda, tras reiniciar)
+    Estado: 200   Content-Type respuesta: application/json
+    Cantidad: 3
+
+==============================================================================
+J. Arranque sin MONGODB_URI (npm start, sin --env-file)
+==============================================================================
+    consola> No se pudo iniciar la aplicación: ErrorDeConfiguracion
+    consola> Falta MONGODB_URI en el entorno.
+    consola> Revisar entorno, DNS, red, acceso de Atlas y puerto.
+    Código de salida: 1
+    Puerto 3000 después del intento: cerrado
+
+==============================================================================
+K. Consulta directa a la colección (equivalente a Data Explorer)
+==============================================================================
+
+    Base: reservas_salas_u8   Colección: reservas   Documentos: 3
+    findOne({ _id: ObjectId("6adade5f32675795bd1e0660") }):
+    {"_id":"6adade5f32675795bd1e0660","estudiante":"Ana Ejemplo","email":"ana@example.com","sala":"Sala Norte","fecha":"2026-10-21","turno":"Mañana","personas":2,"estado":"pendiente","__v":0}
+    Tipo de _id guardado: ObjectId
+
+==============================================================================
+L. Fallo inesperado simulado (node scripts/simular-fallo-servicio.js, sin conectar a Atlas)
+==============================================================================
+
+    GET /api/reservas -> 500 application/json; charset=utf-8 | detalles internos: no
+    GET /api/reservas/000000000000000000000000 -> 500 application/json; charset=utf-8 | detalles internos: no
+    POST /api/reservas -> 500 application/json; charset=utf-8 | detalles internos: no
+    GET /estado -> 500 application/json; charset=utf-8 | detalles internos: no
+    GET /reservas -> 500 text/html; charset=utf-8 | detalles internos: no
